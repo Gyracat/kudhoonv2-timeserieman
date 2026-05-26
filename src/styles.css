@@ -1,0 +1,82 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+
+  --color-buy: var(--buy);
+  --color-sell: var(--sell);
+  --color-ema12: var(--ema12);
+  --color-ema26: var(--ema26);
+  --color-wave: var(--wave);
+  --color-nearbuy: var(--nearbuy);
+  --color-price: var(--price);
+  --color-tooltip-bg: var(--tooltip-bg);
+}
+
+:root {
+  --radius: 0.5rem;
+
+  /* Dark theme tuned to Kudhoon spec */
+  --background: oklch(0.18 0.015 250);    /* #0d1117 */
+  --foreground: oklch(0.93 0.012 240);    /* #e6edf3 */
+  --card: oklch(0.22 0.015 250);          /* #161b22 */
+  --card-foreground: oklch(0.93 0.012 240);
+  --popover: oklch(0.22 0.015 250);
+  --popover-foreground: oklch(0.93 0.012 240);
+  --primary: oklch(0.72 0.18 142);        /* green */
+  --primary-foreground: oklch(0.12 0 0);
+  --secondary: oklch(0.27 0.015 250);
+  --secondary-foreground: oklch(0.93 0.012 240);
+  --muted: oklch(0.27 0.015 250);
+  --muted-foreground: oklch(0.66 0.015 250); /* #8b949e */
+  --accent: oklch(0.30 0.015 250);
+  --accent-foreground: oklch(0.93 0.012 240);
+  --destructive: oklch(0.65 0.21 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.32 0.015 250);        /* #30363d */
+  --input: oklch(0.27 0.015 250);
+  --ring: oklch(0.55 0.18 142);
+
+  /* Domain colors */
+  --buy: #3fb950;
+  --sell: #f85149;
+  --ema12: #58a6ff;
+  --ema26: #f0883e;
+  --wave: #ff9800;
+  --nearbuy: #00e5ff;
+  --price: #e6edf3;
+  --tooltip-bg: #1c2128;
+}
+
+@layer base {
+  html, body { background-color: var(--color-background); color: var(--color-foreground); }
+  * { border-color: var(--color-border); }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+}
