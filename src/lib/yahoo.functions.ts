@@ -67,3 +67,32 @@ export const fetchYahooBar = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     return await fetchYahoo(data.ticker, data.range ?? "1y", data.interval ?? "1d");
   });
+
+export type YahooSearchHit = { symbol: string; name: string; exch: string; type: string };
+
+export const searchYahoo = createServerFn({ method: "GET" })
+  .inputValidator((d: { q: string }) => d)
+  .handler(async ({ data }): Promise<YahooSearchHit[]> => {
+    const q = data.q.trim();
+    if (!q) return [];
+    const url = `https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=10&newsCount=0`;
+    const res = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36",
+        Accept: "application/json",
+      },
+    });
+    if (!res.ok) return [];
+    const json: any = await res.json();
+    const quotes: any[] = json?.quotes ?? [];
+    return quotes
+      .filter((q) => q.symbol)
+      .map((q) => ({
+        symbol: q.symbol,
+        name: q.shortname ?? q.longname ?? q.symbol,
+        exch: q.exchDisp ?? q.exchange ?? "",
+        type: q.quoteType ?? q.typeDisp ?? "",
+      }));
+  });
+

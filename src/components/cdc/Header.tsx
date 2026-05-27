@@ -1,14 +1,19 @@
 import { Link } from "@tanstack/react-router";
-import { Search, Settings, Activity } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Settings, Activity } from "lucide-react";
+import { SearchBox } from "./SearchBox";
 
 export function Header({
   search,
   onSearch,
+  showSearch = true,
 }: {
   search?: string;
   onSearch?: (v: string) => void;
+  showSearch?: boolean;
 }) {
+  // legacy local-filter props kept for compatibility but ignored
+  void search;
+  void onSearch;
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur">
       <div className="max-w-7xl mx-auto px-4 h-14 flex items-center gap-4">
@@ -18,17 +23,7 @@ export function Header({
           </span>
           <span className="text-sm">CDC Wave 3</span>
         </Link>
-        {onSearch && (
-          <div className="relative flex-1 max-w-md">
-            <Search className="size-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={search ?? ""}
-              onChange={(e) => onSearch(e.target.value)}
-              placeholder="Search ticker..."
-              className="pl-8 h-9 bg-card border-border"
-            />
-          </div>
-        )}
+        {showSearch && <SearchBox />}
         <div className="flex-1" />
         <Link
           to="/settings"
