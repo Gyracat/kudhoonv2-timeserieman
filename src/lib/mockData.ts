@@ -5,13 +5,13 @@ const TICKERS: { ticker: string; name: string; basePrice: number; trend: number;
   { ticker: "AAPL", name: "Apple Inc.", basePrice: 220, trend: 0.0015, vol: 0.018 },
   { ticker: "MSFT", name: "Microsoft Corp.", basePrice: 420, trend: 0.0012, vol: 0.016 },
   { ticker: "NVDA", name: "NVIDIA Corp.", basePrice: 130, trend: 0.0028, vol: 0.032 },
-  { ticker: "GOOGL", name: "Alphabet Inc.", basePrice: 175, trend: 0.0009, vol: 0.019 },
-  { ticker: "TSLA", name: "Tesla Inc.", basePrice: 245, trend: 0.0005, vol: 0.038 },
-  { ticker: "META", name: "Meta Platforms", basePrice: 555, trend: 0.0014, vol: 0.022 },
-  { ticker: "AMZN", name: "Amazon.com", basePrice: 195, trend: 0.0011, vol: 0.020 },
-  { ticker: "SPY", name: "S&P 500 ETF", basePrice: 565, trend: 0.0006, vol: 0.010 },
-  { ticker: "QQQ", name: "Nasdaq 100 ETF", basePrice: 485, trend: 0.0008, vol: 0.014 },
-  { ticker: "AMD", name: "Advanced Micro Devices", basePrice: 155, trend: -0.0005, vol: 0.030 },
+];
+
+export const DEFAULT_WATCHLIST = [
+  "AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA", "AMD",
+  "NFLX", "AVGO", "ORCL", "CRM", "ADBE", "INTC", "QCOM", "PYPL",
+  "DIS", "BA", "JPM", "V", "MA", "WMT", "COST", "NKE",
+  "SPY", "QQQ", "DIA", "IWM", "BTC-USD", "ETH-USD",
 ];
 
 function seededRandom(seed: number) {
@@ -177,4 +177,4 @@ export function getMockSignal(ticker: string): Signal | null {
   return generateMockSignal(TICKERS[idx], (idx + 1) * 7919);
 }
 
-export const DEFAULT_TICKERS = TICKERS.map((t) => t.ticker);
+export const DEFAULT_TICKERS = DEFAULT_WATCHLIST;
