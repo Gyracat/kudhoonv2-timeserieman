@@ -8,7 +8,7 @@ export type YahooBar = {
   volumes: number[];
 };
 
-async function fetchYahoo(ticker: string, range = "1y", interval = "1d"): Promise<YahooBar | null> {
+async function fetchYahoo(ticker: string, range = "3y", interval = "1d"): Promise<YahooBar | null> {
   const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(
     ticker,
   )}?range=${range}&interval=${interval}&includePrePost=false&events=div%2Csplit`;
@@ -54,7 +54,7 @@ async function fetchYahoo(ticker: string, range = "1y", interval = "1d"): Promis
 export const fetchYahooBars = createServerFn({ method: "GET" })
   .inputValidator((d: { tickers: string[]; range?: string; interval?: string }) => d)
   .handler(async ({ data }) => {
-    const range = data.range ?? "1y";
+    const range = data.range ?? "3y";
     const interval = data.interval ?? "1d";
     const results = await Promise.all(
       data.tickers.map((t) => fetchYahoo(t, range, interval).catch(() => null)),
@@ -65,7 +65,7 @@ export const fetchYahooBars = createServerFn({ method: "GET" })
 export const fetchYahooBar = createServerFn({ method: "GET" })
   .inputValidator((d: { ticker: string; range?: string; interval?: string }) => d)
   .handler(async ({ data }) => {
-    return await fetchYahoo(data.ticker, data.range ?? "1y", data.interval ?? "1d");
+    return await fetchYahoo(data.ticker, data.range ?? "3y", data.interval ?? "1d");
   });
 
 export type YahooSearchHit = { symbol: string; name: string; exch: string; type: string };
