@@ -1,6 +1,7 @@
 import type { Signal, Action, Confidence, Trade } from "./types";
 import { calcEMA, detectWaveStages, calcWavePhase, getCDCZone, ZONE_LABELS } from "./cdc";
 import type { YahooBar } from "./yahoo.functions";
+import { tuneParams } from "./tuner";
 
 function buildTrades(dates: string[], prices: number[], waves: string[]): Trade[] {
   const trades: Trade[] = [];
@@ -48,9 +49,12 @@ function buildTrades(dates: string[], prices: number[], waves: string[]): Trade[
 
 export function buildSignalFromBar(bar: YahooBar): Signal {
   const { ticker, name, dates, prices, volumes } = bar;
-  const ema12s = calcEMA(prices, 12);
-  const ema26s = calcEMA(prices, 26);
-  const ema55s = calcEMA(prices, 55);
+  // Auto-tune EMA params via walk-forward backtest on full series
+  const bt = tuneParams(dates, prices);
+  const { fast, slow, wave: waveP } = bt.params;
+  const ema12s = calcEMA(prices, fast);
+  const ema26s = calcEMA(prices, slow);
+  const ema55s = calcEMA(prices, waveP);
   const waves = detectWaveStages(prices, ema12s, ema26s, ema55s);
   const last = prices.length - 1;
   const price = prices[last];
@@ -121,5 +125,13 @@ export function buildSignalFromBar(bar: YahooBar): Signal {
     trades,
     signalGain: +signalGain.toFixed(2),
     wavePhase,
+    backtest: {
+      params: bt.params,
+      perYear: bt.perYear,
+      totalReturn: bt.totalReturn,
+      winRate: bt.winRate,
+      mdd: bt.mdd,
+      trades: bt.trades,
+    },
   };
 }

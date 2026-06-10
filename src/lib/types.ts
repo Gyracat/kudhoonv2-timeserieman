@@ -48,4 +48,12 @@ export type Signal = {
   trades: Trade[];
   signalGain: number;
   wavePhase: number;
+  backtest?: {
+    params: { fast: number; slow: number; wave: number };
+    perYear: { year: number; trades: number; winRate: number; netProfit: number; mdd: number }[];
+    totalReturn: number;
+    winRate: number;
+    mdd: number;
+    trades: number;
+  };
 };

@@ -133,6 +133,22 @@ export function SignalCard({
         </span>
       </div>
 
+      {signal.backtest && (
+        <div className="flex items-center justify-between text-[11px] -mt-1.5">
+          <span className="text-muted-foreground">
+            3y · EMA {signal.backtest.params.fast}/{signal.backtest.params.slow}/{signal.backtest.params.wave}
+          </span>
+          <span className="tabular-nums">
+            Win <span className={signal.backtest.winRate >= 50 ? "text-buy" : "text-sell"}>{signal.backtest.winRate}%</span>
+            <span className="text-muted-foreground"> · </span>
+            <span className={signal.backtest.totalReturn >= 0 ? "text-buy" : "text-sell"}>
+              {signal.backtest.totalReturn >= 0 ? "+" : ""}
+              {signal.backtest.totalReturn.toFixed(1)}%
+            </span>
+          </span>
+        </div>
+      )}
+
       {lastTrades.length > 0 && (
         <details className="text-xs">
           <summary className="cursor-pointer text-muted-foreground flex items-center gap-1">

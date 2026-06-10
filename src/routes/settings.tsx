@@ -4,6 +4,7 @@ import { Header } from "@/components/cdc/Header";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { EmailSubscribeBox } from "@/components/cdc/EmailSubscribeBox";
 import { X } from "lucide-react";
 import {
   getBaseUrl,
@@ -56,13 +57,15 @@ function SettingsPage() {
           </p>
         </div>
 
+        <EmailSubscribeBox />
+
         <section className="rounded-lg border border-border bg-card p-5 space-y-4">
           <div>
             <Label htmlFor="base-url" className="text-sm">
               Railway API URL
             </Label>
             <p className="text-xs text-muted-foreground mt-1 mb-2">
-              Leave empty to use built-in mock data.
+              Leave empty to use Yahoo Finance directly.
             </p>
             <Input
               id="base-url"

@@ -6,6 +6,7 @@ import { EmaChart } from "@/components/cdc/EmaChart";
 import { StatsBar } from "@/components/cdc/StatsBar";
 import { ChronosPanel } from "@/components/cdc/ChronosPanel";
 import { TradeHistoryTable } from "@/components/cdc/TradeHistoryTable";
+import { BacktestPanel } from "@/components/cdc/BacktestPanel";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/signal/$ticker")({
@@ -106,6 +107,7 @@ function SignalDetail() {
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
         <EmaChart signal={signal} />
         <StatsBar signal={signal} />
+        <BacktestPanel signal={signal} />
         <ChronosPanel signal={signal} />
         <TradeHistoryTable trades={signal.trades} />
       </main>
