@@ -67,9 +67,6 @@ function SettingsPage() {
             <p className="text-xs text-muted-foreground mt-1 mb-2">
               Leave empty to use Yahoo Finance directly.
             </p>
-            <p className="text-xs text-muted-foreground mt-1 mb-2">
-              Leave empty to use built-in mock data.
-            </p>
             <Input
               id="base-url"
               value={url}
