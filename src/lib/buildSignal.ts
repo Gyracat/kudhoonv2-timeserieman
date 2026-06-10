@@ -1,6 +1,7 @@
 import type { Signal, Action, Confidence, Trade } from "./types";
 import { calcEMA, detectWaveStages, calcWavePhase, getCDCZone, ZONE_LABELS } from "./cdc";
 import type { YahooBar } from "./yahoo.functions";
+import { tuneParams } from "./tuner";
 
 function buildTrades(dates: string[], prices: number[], waves: string[]): Trade[] {
   const trades: Trade[] = [];
