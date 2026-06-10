@@ -1,81 +1,97 @@
-# CDC Wave 3 Analyzer — Build Plan
+## เป้าหมาย
+1. **Backtest 3 ปี + auto-tune** ต่อหุ้น เลือก EMA combo ที่ดีที่สุด (walk-forward: tune ปี 1-2 → test ปี 3, recheck)
+2. **Email alert real-time**: ผู้ใช้กรอกอีเมล → ระบบเช็คทุก 15 นาที → ส่งเมลเมื่อมีตัวไหน BUY/SELL ใหม่
 
-A trading signal dashboard styled like kudhoon.lovable.app, following the spec in your uploaded `step7-lovable-prompt.md`.
+---
 
-## Scope
-- Web app (React + TypeScript + Tailwind + shadcn/ui + Recharts)
-- Dark theme with exact color tokens from the spec (#0d1117 bg, #161b22 cards, #3fb950 buy, #f85149 sell, etc.)
-- Two pages: Dashboard (signal cards) + Signal Detail
-- Settings page for Railway API URL + watchlist
-- CDC + Wave calculation utilities run client-side
-- Ships with mock data so the UI works immediately; switches to the real Railway API once a URL is saved in Settings
+## ส่วนที่ 1 — Backtest & Auto-Tune (Frontend, no backend needed)
 
-## Pages & components
+### ขยายข้อมูล Yahoo
+- เปลี่ยน `fetchYahooBars` ใช้ `range=3y` (จากเดิม 1y)
 
-**Dashboard (`/`)**
-- Header: logo "CDC Wave 3", search input, settings icon
-- Filter tabs: All / Buy / Sell / Up / W1 / W2 / W3 / Fav with live counts
-- Responsive signal card grid (3 col desktop, 1 col mobile)
-- Card: ticker, price, badges (Up/W3/date), mini EMA sparkline, Wave Phase progress bar (orange), Total Signal Gain, last 3 trades, View Details button
-- Color-coded left border per action (green BUY, red SELL, gray WATCH)
+### `src/lib/tuner.ts` (ใหม่)
+- `gridSearch(prices, dates)` — ลอง EMA combos: fast ∈ {8,10,12,15}, slow ∈ {21,26,34}, wave ∈ {50,55,89}
+- สำหรับแต่ละ combo: รัน `detectWaveStages` + `buildTrades`, คำนวณ `netProfit`, `winRate`, `mdd`
+- **Walk-forward**: split เป็น 3 ปี — tune บนปี 1+2 (in-sample) → validate ปี 3 (out-of-sample)
+- คะแนนรวม = `netProfit × winRate / (1 + |mdd|)` — เลือก combo ที่ดีที่สุด
+- คืน `{ best: {fast, slow, wave}, perYear: [{year, netProfit, winRate, trades}] }`
 
-**Signal Detail (`/signal/:ticker`)**
-- Header with back, ticker, company, price, market/trend badges, action chip, refresh
-- Recharts LineChart "EMA Chart (Wave Zoom: N days)" with Price (solid white), EMA12 (blue dashed), EMA26 (orange dashed), Wave Pattern EMA55 (orange dashed), and scatter dots (Buy green / Near Buy cyan / Sell red / Wave3 orange)
-- Custom dark tooltip + legend
-- 6-card Stats Bar: Status, Sig Gain, Net Profit, MDD, Trades, Win Rate
-- Chronos-Bolt Confirmation section (two columns: direction/vol/lot/agree + P10/P50/P90/upside/downside), warning banner when `cdc_agree=false`
-- Full Trade History table with lot 1/3..3/3, status badges, colored gains
+### `buildSignal.ts`
+- รับ optional `params` — ถ้าไม่ส่ง รัน `gridSearch` แล้วใช้ best params
+- แนบ `backtest: { params, perYear, totalReturn, winRate, mdd }` ใน Signal
 
-**Settings (`/settings`)**
-- Railway BASE_URL input (persists to localStorage)
-- Watchlist editor (add/remove tickers, default: AAPL,MSFT,NVDA,GOOGL,TSLA,META,AMZN,SPY,QQQ,AMD)
-- Theme indicator (dark only for now)
+### UI
+- เพิ่ม `BacktestPanel` ในหน้า `signal/$ticker` — โชว์ตาราง 3 ปี + best params + กราฟ equity curve
+- ใน `SignalCard` โชว์ badge "Win 65% · 3y +42%" สั้น ๆ
 
-## Technical layout
+---
 
-```text
-src/
-  pages/
-    Dashboard.tsx
-    SignalDetail.tsx
-    Settings.tsx
-  components/
-    SignalCard.tsx
-    FilterTabs.tsx
-    EmaChart.tsx
-    StatsBar.tsx
-    ChronosPanel.tsx
-    TradeHistoryTable.tsx
-    WavePhaseBar.tsx
-  utils/
-    cdc.ts           // calcEMA, getCDCZone, detectWaveStages,
-                     // calcSignalDots, calcStats, calcWavePhase
-    api.ts           // fetch /signals, /signal/:ticker with BASE_URL fallback to mock
-    mockData.ts      // realistic sample signals for 10 tickers
-  types/signal.ts    // Signal, Trade types from spec
-  hooks/
-    useSignals.ts
-    useFavorites.ts  // localStorage Set<string>
-    useSettings.ts   // BASE_URL + watchlist
-  index.css          // design tokens as HSL CSS vars
+## ส่วนที่ 2 — Email Alerts (ต้องเปิด Lovable Cloud)
+
+### Cloud + Email infra setup
+1. เปิด Lovable Cloud (`supabase--enable`)
+2. ตั้งค่า email domain (`email_domain--check_email_domain_status` → setup ถ้ายังไม่มี)
+3. `email_domain--setup_email_infra` + `scaffold_transactional_email`
+
+### Database (migration)
+```sql
+-- ผู้ติดตามอีเมล
+create table public.alert_subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  tickers text[] not null default '{}',  -- ถ้า [] = ทุกตัวใน watchlist
+  active boolean default true,
+  created_at timestamptz default now()
+);
+
+-- log signal ล่าสุดต่อหุ้น (กันส่งซ้ำ)
+create table public.signal_state (
+  ticker text primary key,
+  last_action text not null,        -- BUY / SELL / WATCH / WAIT
+  last_wave text,
+  last_price numeric,
+  updated_at timestamptz default now()
+);
+
+-- log การส่งเมล
+create table public.alert_log (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  ticker text not null,
+  action text not null,
+  price numeric,
+  sent_at timestamptz default now()
+);
 ```
++ RLS policies + grants ตามมาตรฐาน
 
-- Routing: react-router (BrowserRouter)
-- Data fetching: TanStack Query
-- All colors registered as semantic tokens in `index.css` + `tailwind.config.ts` (no hardcoded hex in components)
-- Charts via Recharts; dotted lines via `strokeDasharray` exactly as specified
+### Email template
+- `src/lib/email-templates/signal-alert.tsx` — แสดง ticker, action (BUY/SELL), price, EMA trend, link ไปหน้า signal
 
-## Data flow
-1. App mounts → read BASE_URL from localStorage; if empty, use mock data
-2. `GET /signals?tickers=...&filter=all` → enrich with `calcEMA` + `detectWaveStages` + `calcSignalDots` client-side
-3. Dashboard renders cards; filter tabs filter in-memory
-4. Click card → navigate to `/signal/:ticker` → `GET /signal/:ticker` for fresh detail → render chart + stats + Chronos + history
+### Cron route `/api/public/cron/check-signals`
+- ทุก 15 นาที: pg_cron → POST endpoint นี้
+- Loop ทุก ticker ใน watchlist + tickers ที่ subscriber custom
+- เทียบ action ใหม่ vs `signal_state.last_action` → ถ้าเปลี่ยนเป็น BUY/SELL → enqueue email ให้ subscribers ที่เกี่ยวข้อง
+- อัปเดต `signal_state`
 
-## Out of scope (for now)
-- Real Railway backend (UI ships with mock data + a URL input; you plug in your deployed Railway URL later)
-- Authentication, light theme, mobile-only nav drawer
-- Persistence beyond localStorage (favorites, settings)
+### UI
+- เพิ่ม `EmailSubscribeBox` ใน Header หรือ Settings — กรอกอีเมล + เลือก tickers (default = ทั้งหมด) → POST server fn `subscribeAlerts`
+- หน้า unsubscribe ตาม email template footer
 
-## Deliverable
-A working dark dashboard at `/`, detail view at `/signal/:ticker`, and `/settings`, all matching the Kudhoon visual language and ready to point at your Railway API.
+---
+
+## เทคนิคสำคัญ
+- Walk-forward ป้องกัน overfit — tune กับข้อมูลเก่า ทดสอบกับข้อมูลใหม่
+- Cron ใช้ `/api/public/*` route + signature/secret header เพื่อป้องกัน abuse
+- กันส่งซ้ำด้วย `signal_state` + check ใน `alert_log` ก่อนยิง
+
+---
+
+## ลำดับงาน
+1. Yahoo 3y + tuner + backtest panel
+2. เปิด Cloud + email infra
+3. Tables + server fn (subscribe / cron)
+4. Email template + cron schedule
+5. UI subscribe box
+
+โอเคไหมครับ? หรือมีจุดไหนอยากตัด/เพิ่ม เช่นรอบ cron, จำนวน EMA combos, หรือฟิลด์ใน email?
