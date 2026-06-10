@@ -14,7 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      alert_log: {
+        Row: {
+          action: string
+          email: string
+          id: string
+          price: number | null
+          sent_at: string
+          ticker: string
+        }
+        Insert: {
+          action: string
+          email: string
+          id?: string
+          price?: number | null
+          sent_at?: string
+          ticker: string
+        }
+        Update: {
+          action?: string
+          email?: string
+          id?: string
+          price?: number | null
+          sent_at?: string
+          ticker?: string
+        }
+        Relationships: []
+      }
+      alert_subscribers: {
+        Row: {
+          active: boolean
+          created_at: string
+          email: string
+          id: string
+          tickers: string[]
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          email: string
+          id?: string
+          tickers?: string[]
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          tickers?: string[]
+        }
+        Relationships: []
+      }
+      signal_state: {
+        Row: {
+          last_action: string
+          last_price: number | null
+          last_wave: string | null
+          ticker: string
+          updated_at: string
+        }
+        Insert: {
+          last_action: string
+          last_price?: number | null
+          last_wave?: string | null
+          ticker: string
+          updated_at?: string
+        }
+        Update: {
+          last_action?: string
+          last_price?: number | null
+          last_wave?: string | null
+          ticker?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
