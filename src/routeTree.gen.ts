@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignalTickerRouteImport } from './routes/signal.$ticker'
+import { Route as ApiPublicCronCheckSignalsRouteImport } from './routes/api.public.cron.check-signals'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -28,35 +29,54 @@ const SignalTickerRoute = SignalTickerRouteImport.update({
   path: '/signal/$ticker',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronCheckSignalsRoute =
+  ApiPublicCronCheckSignalsRouteImport.update({
+    id: '/api/public/cron/check-signals',
+    path: '/api/public/cron/check-signals',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
   '/signal/$ticker': typeof SignalTickerRoute
+  '/api/public/cron/check-signals': typeof ApiPublicCronCheckSignalsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
   '/signal/$ticker': typeof SignalTickerRoute
+  '/api/public/cron/check-signals': typeof ApiPublicCronCheckSignalsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
   '/signal/$ticker': typeof SignalTickerRoute
+  '/api/public/cron/check-signals': typeof ApiPublicCronCheckSignalsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/settings' | '/signal/$ticker'
+  fullPaths:
+    | '/'
+    | '/settings'
+    | '/signal/$ticker'
+    | '/api/public/cron/check-signals'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/settings' | '/signal/$ticker'
-  id: '__root__' | '/' | '/settings' | '/signal/$ticker'
+  to: '/' | '/settings' | '/signal/$ticker' | '/api/public/cron/check-signals'
+  id:
+    | '__root__'
+    | '/'
+    | '/settings'
+    | '/signal/$ticker'
+    | '/api/public/cron/check-signals'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SettingsRoute: typeof SettingsRoute
   SignalTickerRoute: typeof SignalTickerRoute
+  ApiPublicCronCheckSignalsRoute: typeof ApiPublicCronCheckSignalsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +102,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignalTickerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron/check-signals': {
+      id: '/api/public/cron/check-signals'
+      path: '/api/public/cron/check-signals'
+      fullPath: '/api/public/cron/check-signals'
+      preLoaderRoute: typeof ApiPublicCronCheckSignalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,7 +116,18 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SettingsRoute: SettingsRoute,
   SignalTickerRoute: SignalTickerRoute,
+  ApiPublicCronCheckSignalsRoute: ApiPublicCronCheckSignalsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
