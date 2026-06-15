@@ -89,7 +89,14 @@ async function sendEmail(args: {
 export const Route = createFileRoute("/api/public/cron/check-signals")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        // Auth: require Bearer CRON_SECRET. Fail closed if secret missing.
+        const cronSecret = process.env.CRON_SECRET;
+        const auth = request.headers.get("authorization") ?? "";
+        if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+
         // 1) Gather subscribers and the universe of tickers to scan
         const { data: subs } = await supabaseAdmin
           .from("alert_subscribers")
