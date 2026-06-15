@@ -73,7 +73,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CDC Wave + Time Serie (Beta)" },
+      { title: "CDC Wave 3 + Time Serie (Beta)" },
       { name: "description", content: "Stock market data visualization and analysis tool." },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "CDC Wave + Time Serie (Beta)" },
