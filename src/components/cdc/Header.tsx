@@ -21,7 +21,7 @@ export function Header({
           <span className="grid place-items-center size-7 rounded bg-buy/20 text-buy">
             <Activity className="size-4" />
           </span>
-          <span className="text-sm">CDC Wave 3</span>
+          <span className="text-sm">CDC Wave + Time Serie (Beta)</span?
         </Link>
         {showSearch && <SearchBox />}
         <div className="flex-1" />
