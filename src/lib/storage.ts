@@ -48,3 +48,27 @@ export function setFavorites(tickers: string[]) {
   if (!isBrowser()) return;
   localStorage.setItem(FAVORITES_KEY, JSON.stringify(tickers));
 }
+
+// FIX: ticker metadata cache (เก็บชื่อบริษัทที่เคยค้นเจอ)
+// เพื่อให้แสดงชื่อเต็มได้แม้ offline
+const TICKER_META_KEY = "cdc.tickerMeta";
+
+export type TickerMeta = { ticker: string; name: string; exchange: string };
+
+export function getTickerMeta(): Record<string, TickerMeta> {
+  if (!isBrowser()) return {};
+  const raw = localStorage.getItem(TICKER_META_KEY);
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+export function saveTickerMeta(meta: TickerMeta) {
+  if (!isBrowser()) return;
+  const all = getTickerMeta();
+  all[meta.ticker] = meta;
+  localStorage.setItem(TICKER_META_KEY, JSON.stringify(all));
+}
