@@ -10,6 +10,8 @@ export type Trade = {
   status: "Open" | "Closed";
   signalGain: number;
   bh: number;
+  // FIX: บอกว่าออกจาก trade เพราะอะไร
+  exitReason?: "sell" | "stop" | null;
 };
 
 export type Signal = {
@@ -55,5 +57,8 @@ export type Signal = {
     winRate: number;
     mdd: number;
     trades: number;
+    // FIX: out-of-sample validation result
+    oosWinRate?: number;
+    oosReturn?: number;
   };
 };
