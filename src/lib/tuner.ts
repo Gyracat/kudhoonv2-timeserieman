@@ -19,22 +19,68 @@ export type BacktestResult = {
   trades: number;
   score: number;
   candidates: number;
+  // FIX: เพิ่ม out-of-sample validation result แยกจาก in-sample
+  oosWinRate: number;
+  oosReturn: number;
 };
 
-// Build closed-trade gains (in %) from a sub-series.
+// ── FIX #1 + #4: ค่าคงที่สำหรับ stop loss และ transaction cost ──
+const STOP_LOSS_PCT = 8; // 8% hard stop (ใช้แทน ATR สำหรับ JS แบบ lightweight)
+const TXN_COST_PCT = 0.15; // 0.15% ต่อขา (buy + sell = 0.30%)
+const MAX_LOTS = 3;
+
+// ── FIX #2: simulate ใช้ tranche logic เดียวกับ buildTrades ──
+// W1 → lot 1/3, W2 → lot 2/3, W3 → lot 3/3, SELL/stop → ปิดทุก lot
+// คืน gains ต่อ "lot" (ไม่ใช่ต่อ position) เพื่อให้ตรงกับ buildTrades
 function simulate(prices: number[], waves: string[]): number[] {
   const gains: number[] = [];
-  let openPrice: number | null = null;
+
+  type Lot = { price: number };
+  let openLots: Lot[] = [];
+
+  const closeAll = (exitPrice: number) => {
+    for (const lot of openLots) {
+      // FIX #4: หัก transaction cost ทั้ง buy + sell
+      const raw = ((exitPrice - lot.price) / lot.price) * 100;
+      gains.push(+(raw - TXN_COST_PCT * 2).toFixed(4));
+    }
+    openLots = [];
+  };
+
   for (let i = 1; i < waves.length; i++) {
     const w = waves[i];
     const prev = waves[i - 1];
-    if ((w === "W1" || w === "W3") && prev !== w && openPrice == null) {
-      openPrice = prices[i];
-    } else if (w === "SELL" && prev !== "SELL" && openPrice != null) {
-      gains.push(((prices[i] - openPrice) / openPrice) * 100);
-      openPrice = null;
+    const price = prices[i];
+
+    // ── FIX #1: Stop loss check ก่อน (ทุก lot ใช้ stop ของตัวเอง) ──
+    if (openLots.length > 0) {
+      // ถ้า lot ใดถึง stop → ปิดทั้ง position (CDC ปิดพร้อมกัน)
+      const worstLot = openLots.reduce((a, b) => (a.price > b.price ? a : b));
+      if (price < worstLot.price * (1 - STOP_LOSS_PCT / 100)) {
+        closeAll(price);
+        continue;
+      }
+    }
+
+    // ── Tranche entries ──
+    if (w === "W1" && prev !== "W1" && openLots.length === 0) {
+      openLots.push({ price });
+    } else if (w === "W2" && prev !== "W2" && openLots.length === 1) {
+      openLots.push({ price });
+    } else if (w === "W3" && prev !== "W3" && openLots.length === 2) {
+      openLots.push({ price });
+    }
+    // ── Exit on SELL ──
+    else if (w === "SELL" && prev !== "SELL" && openLots.length > 0) {
+      closeAll(price);
     }
   }
+
+  // ปิด open lots ที่เหลือด้วยราคาล่าสุด (mark-to-market)
+  if (openLots.length > 0) {
+    closeAll(prices[prices.length - 1]);
+  }
+
   return gains;
 }
 
@@ -59,8 +105,13 @@ function statsOf(gains: number[]): { winRate: number; netProfit: number; mdd: nu
 
 function score(s: { winRate: number; netProfit: number; mdd: number; trades: number }): number {
   if (!s.trades) return -Infinity;
+  // FIX: penalize trades น้อยเกินไป (overfitting risk) ด้วย
+  // ต้องการอย่างน้อย 5 trades ถึงจะเชื่อถือได้
+  const tradesPenalty = s.trades < 5 ? 0.5 : 1.0;
   // reward net profit & win rate, penalize drawdown
-  return (s.netProfit * (s.winRate / 100)) / (1 + Math.abs(s.mdd) / 20);
+  return (
+    ((s.netProfit * (s.winRate / 100)) / (1 + Math.abs(s.mdd) / 20)) * tradesPenalty
+  );
 }
 
 function runOnce(
@@ -83,8 +134,9 @@ const WAVE_GRID = [50, 55, 89];
 
 /**
  * Walk-forward auto-tune over 3 yearly chunks.
+ * FIX #7: ตอนนี้ validate บน out-of-sample จริง แยกจาก in-sample
  * - Tune on year 1+2 (in-sample): pick best params by composite score
- * - Validate on year 3 (out-of-sample)
+ * - Validate on year 3 (out-of-sample): report oosWinRate, oosReturn แยก
  * - Recompute per-year stats with the chosen params over the whole series
  */
 export function tuneParams(dates: string[], prices: number[]): BacktestResult {
@@ -103,9 +155,11 @@ export function tuneParams(dates: string[], prices: number[]): BacktestResult {
       trades: all.gains.length,
       score: score({ ...s, trades: all.gains.length }),
       candidates: 0,
+      oosWinRate: 0,
+      oosReturn: 0,
     };
   }
-  // Build year buckets by date
+
   const yearOf = dates.map((d) => +d.slice(0, 4));
   const years = Array.from(new Set(yearOf)).sort();
   const lastYears = years.slice(-3);
@@ -114,6 +168,8 @@ export function tuneParams(dates: string[], prices: number[]): BacktestResult {
   const cutoff = inSampleEnd === -1 ? Math.floor(n * 0.66) : inSampleEnd;
 
   const inPrices = prices.slice(0, cutoff);
+  // FIX #7: out-of-sample data แยกชัดเจน
+  const outPrices = prices.slice(cutoff);
 
   let best: { params: Params; sc: number; trades: number } = {
     params: { fast: 12, slow: 26, wave: 55 },
@@ -133,6 +189,16 @@ export function tuneParams(dates: string[], prices: number[]): BacktestResult {
         if (sc > best.sc) best = { params: { fast, slow, wave }, sc, trades: gains.length };
       }
     }
+  }
+
+  // FIX #7: validate best params บน out-of-sample (data ที่ไม่เคยเห็น)
+  let oosWinRate = 0;
+  let oosReturn = 0;
+  if (outPrices.length >= 30) {
+    const oos = runOnce(outPrices, best.params.fast, best.params.slow, best.params.wave);
+    const oosStats = statsOf(oos.gains);
+    oosWinRate = oosStats.winRate;
+    oosReturn = oosStats.netProfit;
   }
 
   // Apply best params on FULL series and split per year for reporting
@@ -160,5 +226,7 @@ export function tuneParams(dates: string[], prices: number[]): BacktestResult {
     trades: full.gains.length,
     score: score({ ...total, trades: full.gains.length }),
     candidates,
+    oosWinRate,
+    oosReturn,
   };
 }
