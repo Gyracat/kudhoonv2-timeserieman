@@ -40,6 +40,10 @@ export type Signal = {
   vol_spike: boolean;
   volatility_pct: number;
   cross_in_days: number | null;
+  // FIX: flag บอกว่าเป็น Chronos จริง (จาก Railway) หรือ statistical
+  is_real_chronos?: boolean;
+  // FIX: ระบุ model ที่ใช้ forecast: lstm | chronos | statistical
+  forecast_model?: "lstm" | "chronos" | "statistical";
   dates: string[];
   prices: number[];
   ema12s: number[];
