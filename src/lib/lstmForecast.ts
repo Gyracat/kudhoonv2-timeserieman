@@ -82,9 +82,10 @@ export async function lstmForecast(
   prices: number[],
   opts: { windowSize?: number; horizon?: number; epochs?: number } = {},
 ): Promise<LSTMResult> {
-  const windowSize = opts.windowSize ?? 20;
+  // FIX: ลดทุกอย่างให้เร็วขึ้น ~5 เท่า
+  const windowSize = opts.windowSize ?? 15; // 20 → 15
   const horizon = opts.horizon ?? 10;
-  const epochs = opts.epochs ?? 30;
+  const epochs = opts.epochs ?? 12; // 30 → 12 (เร็วขึ้น 2.5 เท่า)
 
   // ใช้ cache ถ้ามี
   const key = cacheKey(prices);
@@ -98,8 +99,8 @@ export async function lstmForecast(
   const tf = await loadTF();
   const current = prices[prices.length - 1];
 
-  // ใช้แค่ 1 ปีล่าสุด (เร็วขึ้น + relevant กว่า)
-  const recent = prices.slice(-252);
+  // FIX: ใช้แค่ 120 วันล่าสุด (252 → 120) เร็วขึ้นอีกเท่าตัว
+  const recent = prices.slice(-120);
   const { norm, min, max } = normalize(recent);
   const { X, y } = makeWindows(norm, windowSize);
 
@@ -110,27 +111,26 @@ export async function lstmForecast(
   );
   const ys = tf.tensor2d(y, [y.length, 1]);
 
-  // ── สร้าง LSTM model ─────────────────────────────────────
+  // ── สร้าง LSTM model (เล็กลง เร็วขึ้น) ───────────────────
   const model = tf.sequential();
   model.add(
     tf.layers.lstm({
-      units: 32,
+      units: 16, // 32 → 16 (เร็วขึ้น 2 เท่า)
       inputShape: [windowSize, 1],
       returnSequences: false,
     }),
   );
-  model.add(tf.layers.dropout({ rate: 0.2 }));
   model.add(tf.layers.dense({ units: 1 }));
 
   model.compile({
-    optimizer: tf.train.adam(0.01),
+    optimizer: tf.train.adam(0.02), // lr สูงขึ้น → converge เร็ว
     loss: "meanSquaredError",
   });
 
   // ── Train ────────────────────────────────────────────────
   await model.fit(xs, ys, {
     epochs,
-    batchSize: 32,
+    batchSize: 16,
     shuffle: true,
     verbose: 0,
   });
