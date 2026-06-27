@@ -15,17 +15,11 @@ export async function fetchSignals(): Promise<Signal[]> {
     return (await res.json()) as Signal[];
   }
 
-  // ไม่มี Railway → build ใน browser + LSTM forecast
+  // ไม่มี Railway → build ใน browser
+  // FIX: Dashboard ไม่ train LSTM (ช้าเกินไปถ้าทำทุกหุ้น)
+  // LSTM จะ train เฉพาะตอนเปิด detail ของหุ้นนั้น (fetchSignal)
   const bars = await fetchYahooBars({ data: { tickers } });
-  const signals = bars.map(buildSignalFromBar);
-
-  // FIX: เติม LSTM ทีละตัว (train ใน browser)
-  // ทำแบบ sequential เพื่อไม่ให้ browser ค้าง (LSTM กิน CPU)
-  const enriched: Signal[] = [];
-  for (const sig of signals) {
-    enriched.push(await enrichWithLSTM(sig));
-  }
-  return enriched;
+  return bars.map(buildSignalFromBar);
 }
 
 export async function fetchSignal(ticker: string): Promise<Signal | null> {
