@@ -105,7 +105,7 @@ function Dashboard() {
         {/* แถว filter + scan buttons */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <FilterTabs active={active} counts={counts} onChange={(k) => { setActive(k); setScanResult(null); }} />
-          <ScanButtons signals={signals} onResult={handleScan} />
+          <ScanButtons onResult={handleScan} />
         </div>
 
         {/* FIX: แสดง label เมื่อ scan active */}
