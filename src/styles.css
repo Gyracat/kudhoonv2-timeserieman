@@ -38,6 +38,7 @@
   --color-nearbuy: var(--nearbuy);
   --color-price: var(--price);
   --color-tooltip-bg: var(--tooltip-bg);
+  --color-pink: var(--pink);
 }
 
 :root {
