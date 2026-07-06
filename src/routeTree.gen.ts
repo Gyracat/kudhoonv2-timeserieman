@@ -10,13 +10,20 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignalTickerRouteImport } from './routes/signal.$ticker'
+import { Route as ApiPublicSearchRouteImport } from './routes/api.public.search'
+import { Route as AuthenticatedAppMeasureRouteImport } from './routes/_authenticated.app.measure'
 import { Route as ApiPublicCronCheckSignalsRouteImport } from './routes/api.public.cron.check-signals'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -29,6 +36,16 @@ const SignalTickerRoute = SignalTickerRouteImport.update({
   path: '/signal/$ticker',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSearchRoute = ApiPublicSearchRouteImport.update({
+  id: '/api/public/search',
+  path: '/api/public/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAppMeasureRoute = AuthenticatedAppMeasureRouteImport.update({
+  id: '/app/measure',
+  path: '/app/measure',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiPublicCronCheckSignalsRoute =
   ApiPublicCronCheckSignalsRouteImport.update({
     id: '/api/public/cron/check-signals',
@@ -40,19 +57,26 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
   '/signal/$ticker': typeof SignalTickerRoute
+  '/app/measure': typeof AuthenticatedAppMeasureRoute
+  '/api/public/search': typeof ApiPublicSearchRoute
   '/api/public/cron/check-signals': typeof ApiPublicCronCheckSignalsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
   '/signal/$ticker': typeof SignalTickerRoute
+  '/app/measure': typeof AuthenticatedAppMeasureRoute
+  '/api/public/search': typeof ApiPublicSearchRoute
   '/api/public/cron/check-signals': typeof ApiPublicCronCheckSignalsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/settings': typeof SettingsRoute
   '/signal/$ticker': typeof SignalTickerRoute
+  '/_authenticated/app/measure': typeof AuthenticatedAppMeasureRoute
+  '/api/public/search': typeof ApiPublicSearchRoute
   '/api/public/cron/check-signals': typeof ApiPublicCronCheckSignalsRoute
 }
 export interface FileRouteTypes {
@@ -61,21 +85,34 @@ export interface FileRouteTypes {
     | '/'
     | '/settings'
     | '/signal/$ticker'
+    | '/app/measure'
+    | '/api/public/search'
     | '/api/public/cron/check-signals'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/settings' | '/signal/$ticker' | '/api/public/cron/check-signals'
-  id:
-    | '__root__'
+  to:
     | '/'
     | '/settings'
     | '/signal/$ticker'
+    | '/app/measure'
+    | '/api/public/search'
+    | '/api/public/cron/check-signals'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/settings'
+    | '/signal/$ticker'
+    | '/_authenticated/app/measure'
+    | '/api/public/search'
     | '/api/public/cron/check-signals'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   SettingsRoute: typeof SettingsRoute
   SignalTickerRoute: typeof SignalTickerRoute
+  ApiPublicSearchRoute: typeof ApiPublicSearchRoute
   ApiPublicCronCheckSignalsRoute: typeof ApiPublicCronCheckSignalsRoute
 }
 
@@ -86,6 +123,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -102,6 +146,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignalTickerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/search': {
+      id: '/api/public/search'
+      path: '/api/public/search'
+      fullPath: '/api/public/search'
+      preLoaderRoute: typeof ApiPublicSearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/app/measure': {
+      id: '/_authenticated/app/measure'
+      path: '/app/measure'
+      fullPath: '/app/measure'
+      preLoaderRoute: typeof AuthenticatedAppMeasureRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/cron/check-signals': {
       id: '/api/public/cron/check-signals'
       path: '/api/public/cron/check-signals'
@@ -112,12 +170,35 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppMeasureRoute: typeof AuthenticatedAppMeasureRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppMeasureRoute: AuthenticatedAppMeasureRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   SettingsRoute: SettingsRoute,
   SignalTickerRoute: SignalTickerRoute,
+  ApiPublicSearchRoute: ApiPublicSearchRoute,
   ApiPublicCronCheckSignalsRoute: ApiPublicCronCheckSignalsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
