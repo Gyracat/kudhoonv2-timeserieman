@@ -15,18 +15,25 @@ export type ScanProgress = {
 };
 
 export type ScanScope =
-  | "active"      // most active + gainers + losers (default)
-  | "gainers"     // วันนี้ขึ้นแรง
-  | "losers"      // วันนี้ลงแรง
-  | "tech"        // tech growth
-  | "global";     // ทั่วโลกหลาย region
+  | "active"
+  | "gainers"
+  | "losers"
+  | "tech"
+  | "global"
+  | "etf"
+  | "crypto";
 
-const SCOPE_CONFIG: Record<ScanScope, { type?: string; regions?: string[] }> = {
-  active:  {},  // default merge
+const SCOPE_CONFIG: Record<
+  ScanScope,
+  { type?: string; regions?: string[]; quoteType?: "EQUITY" | "ETF" | "MUTUALFUND" }
+> = {
+  active:  {},
   gainers: { type: "day_gainers" },
   losers:  { type: "day_losers" },
   tech:    { type: "growth_technology_stocks" },
-  global:  { regions: ["us", "gb", "de", "jp", "hk", "th", "sg", "in"] },
+  global:  {}, // handler จะใช้ ALL_REGIONS อัตโนมัติเมื่อ regions ไม่ส่ง (via quoteType EQUITY)
+  etf:     { quoteType: "ETF" },
+  crypto:  { type: "crypto" },
 };
 
 /**
