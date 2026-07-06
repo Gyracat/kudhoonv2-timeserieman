@@ -38,6 +38,7 @@
   --color-nearbuy: var(--nearbuy);
   --color-price: var(--price);
   --color-tooltip-bg: var(--tooltip-bg);
+  --color-pink: var(--pink);
 }
 
 :root {
@@ -73,6 +74,7 @@
   --nearbuy: #00e5ff;
   --price: #e6edf3;
   --tooltip-bg: #1c2128;
+  --pink: #FFACD4;
 }
 
 @layer base {
