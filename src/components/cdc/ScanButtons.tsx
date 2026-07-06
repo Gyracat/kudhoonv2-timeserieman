@@ -50,7 +50,9 @@ export function ScanButtons({
     gainers: "📈 ขึ้นแรงวันนี้",
     losers: "📉 ลงแรงวันนี้",
     tech: "💻 Tech Growth",
-    global: "🌍 ทั่วโลก",
+    global: "🌍 หุ้นทั่วโลก (ทุกประเทศ)",
+    etf: "📊 ETF ทั่วโลก",
+    crypto: "🪙 Cryptocurrency",
   };
 
   return (
