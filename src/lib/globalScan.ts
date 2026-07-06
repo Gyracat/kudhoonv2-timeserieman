@@ -49,7 +49,7 @@ export async function globalScan(
 
   const cfg = SCOPE_CONFIG[scope];
   const hits = await fetchScreenerUniverse({
-    data: { type: cfg.type, regions: cfg.regions, count },
+    data: { type: cfg.type, regions: cfg.regions, quoteType: cfg.quoteType, count },
   });
 
   const tickers = hits.map((h) => h.symbol);
