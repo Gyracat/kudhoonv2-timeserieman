@@ -15,7 +15,7 @@ export function Sparkline({
   const span = max - min || 1;
   const step = width / (values.length - 1);
   const pts = values.map((v, i) => `${(i * step).toFixed(2)},${(height - ((v - min) / span) * height).toFixed(2)}`);
-  const stroke = up ? "hsl(var(--buy))" : "hsl(var(--sell))";
+  const stroke = up ? "var(--buy)" : "var(--sell)";
   return (
     <svg width={width} height={height} className="shrink-0" aria-hidden>
       <polyline points={pts.join(" ")} fill="none" stroke={stroke} strokeWidth="1.5" />
