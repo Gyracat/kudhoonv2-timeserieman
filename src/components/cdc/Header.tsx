@@ -26,6 +26,12 @@ export function Header({
         {showSearch && <SearchBox />}
         <div className="flex-1" />
         <Link
+          to="/portfolio"
+          className="text-xs px-2.5 py-1.5 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+        >
+          พอร์ตทดสอบ
+        </Link>
+        <Link
           to="/settings"
           className="p-2 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
           aria-label="Settings"
