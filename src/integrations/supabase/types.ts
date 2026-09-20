@@ -65,6 +65,80 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolios: {
+        Row: {
+          cash: number
+          created_at: string
+          id: string
+          kind: string
+          starting_cash: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cash?: number
+          created_at?: string
+          id?: string
+          kind: string
+          starting_cash?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cash?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          starting_cash?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      positions: {
+        Row: {
+          avg_price: number
+          created_at: string
+          id: string
+          name: string | null
+          note: string | null
+          portfolio_id: string
+          shares: number
+          ticker: string
+          updated_at: string
+        }
+        Insert: {
+          avg_price?: number
+          created_at?: string
+          id?: string
+          name?: string | null
+          note?: string | null
+          portfolio_id: string
+          shares?: number
+          ticker: string
+          updated_at?: string
+        }
+        Update: {
+          avg_price?: number
+          created_at?: string
+          id?: string
+          name?: string | null
+          note?: string | null
+          portfolio_id?: string
+          shares?: number
+          ticker?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "positions_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       signal_state: {
         Row: {
           last_action: string
@@ -88,6 +162,59 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      trade_history: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          name: string | null
+          note: string | null
+          portfolio_id: string
+          price: number
+          realized_pl: number | null
+          shares: number
+          side: string
+          source: string
+          ticker: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          name?: string | null
+          note?: string | null
+          portfolio_id: string
+          price: number
+          realized_pl?: number | null
+          shares: number
+          side: string
+          source?: string
+          ticker: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          name?: string | null
+          note?: string | null
+          portfolio_id?: string
+          price?: number
+          realized_pl?: number | null
+          shares?: number
+          side?: string
+          source?: string
+          ticker?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_history_portfolio_id_fkey"
+            columns: ["portfolio_id"]
+            isOneToOne: false
+            referencedRelation: "portfolios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
