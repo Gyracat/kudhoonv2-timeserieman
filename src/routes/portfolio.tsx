@@ -111,7 +111,10 @@ function PortfolioPage() {
   const ai = state?.portfolios.find((p) => p.kind === "ai");
   const me = state?.portfolios.find((p) => p.kind === "me");
 
-  const doOrder = async (input: Parameters<typeof order>[0]["data"]) => {
+  const doOrder = async (input: {
+    kind: "ai" | "me"; ticker: string; name?: string; side: "buy" | "sell";
+    shares: number; price: number; source: string; note?: string;
+  }) => {
     try {
       const s = await order({ data: input });
       setState(s);
