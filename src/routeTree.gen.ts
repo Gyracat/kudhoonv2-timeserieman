@@ -9,22 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
-import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignalTickerRouteImport } from './routes/signal.$ticker'
-import { Route as AuthenticatedAppMeasureRouteImport } from './routes/_authenticated.app.measure'
 import { Route as ApiPublicSearchRouteImport } from './routes/api.public.search'
+import { Route as AuthenticatedAppMeasureRouteImport } from './routes/_authenticated.app.measure'
 import { Route as ApiPublicCronCheckSignalsRouteImport } from './routes/api.public.cron.check-signals'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PortfolioRoute = PortfolioRouteImport.update({
@@ -32,9 +28,13 @@ const PortfolioRoute = PortfolioRouteImport.update({
   path: '/portfolio',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignalTickerRoute = SignalTickerRouteImport.update({
@@ -42,15 +42,15 @@ const SignalTickerRoute = SignalTickerRouteImport.update({
   path: '/signal/$ticker',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAppMeasureRoute = AuthenticatedAppMeasureRouteImport.update({
-  id: '/app/measure',
-  path: '/app/measure',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const ApiPublicSearchRoute = ApiPublicSearchRouteImport.update({
   id: '/api/public/search',
   path: '/api/public/search',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAppMeasureRoute = AuthenticatedAppMeasureRouteImport.update({
+  id: '/app/measure',
+  path: '/app/measure',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ApiPublicCronCheckSignalsRoute =
   ApiPublicCronCheckSignalsRouteImport.update({
@@ -131,18 +131,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/portfolio': {
@@ -152,11 +145,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortfolioRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signal/$ticker': {
@@ -166,19 +166,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignalTickerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/app/measure': {
-      id: '/_authenticated/app/measure'
-      path: '/app/measure'
-      fullPath: '/app/measure'
-      preLoaderRoute: typeof AuthenticatedAppMeasureRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/api/public/search': {
       id: '/api/public/search'
       path: '/api/public/search'
       fullPath: '/api/public/search'
       preLoaderRoute: typeof ApiPublicSearchRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/app/measure': {
+      id: '/_authenticated/app/measure'
+      path: '/app/measure'
+      fullPath: '/app/measure'
+      preLoaderRoute: typeof AuthenticatedAppMeasureRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/public/cron/check-signals': {
       id: '/api/public/cron/check-signals'
